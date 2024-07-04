@@ -1,4 +1,4 @@
-from datasets import load_dataset
+from datasets import load_dataset, load_from_disk
 import torch
 from functools import partial
 from datasets.utils.logging import disable_progress_bar
@@ -29,14 +29,17 @@ def encode_func(example, tokenizer, max_seq_length, text_field, choices_field, l
     )
     input_ids = tokenized_example.input_ids
     correct_id = example[label_field]
-    labels = tokenizer(ilett[correct_id][0], add_special_tokens=False).input_ids
-    #labels = correct_id
+    correct_id = tokenizer(ilett[correct_id][0], add_special_tokens=False).input_ids
+#    print("labels", labels, "input_ids", input_ids)
+    labels = input_ids.clone()
     attention_mask = tokenized_example.attention_mask
     # in the output they will be converted to lists but at least we can apply flatten
+    print('inside dataset_loader', tokenizer.decode(correct_id), example[label_field])
     return {
-        "input_ids": input_ids,
-        "labels": labels,
-        "attention_mask": attention_mask,
+        "input_ids": input_ids.flatten(),
+        #"labels": labels.flatten(),
+        "labels": torch.tensor(correct_id),
+        "attention_mask": attention_mask.flatten(),
     }
 
 def get_text_dataset(
@@ -65,11 +68,6 @@ def get_text_dataset(
         batched=False,
         num_proc=num_processes,
         load_from_cache_file=False,
-        remove_columns=[
-            name
-            for name in raw_dataset.column_names
-            if name not in ["input_ids", "labels", "attention_mask"]
-        ],
     )
     # the output is always list of lists
     tokenized_dataset.set_format(type="pt")

@@ -72,9 +72,9 @@ class DataCollatorForCausalLM:
         )
 
         return dict(
-            input_ids=input_ids.flatten(),
-            labels=labels.flatten(),
-            attention_mask=attention_mask.flatten(),
+            input_ids=input_ids,
+            labels=labels,
+            attention_mask=attention_mask,
         )
 
 

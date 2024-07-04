@@ -7,23 +7,17 @@ import datasets
 
 import transformers
 import sys
-from utils.helpers import (
-    get_target_layers_llama,
-    get_target_layers_vit,
-    get_target_layers_deberta,
-    get_target_layers_resnet,
-)
 from utils.model_utils import get_model
-from utils.dataset_utils import get_text_dataset, get_image_dataset
+from utils.dataset_utils import get_text_dataset
 from utils.dataloader_utils import get_dataloader
-from utils.tokenizer_utils import get_tokenizer
-from intrinsic_dimension.compute_distances import compute_id
+from utils.tokenizer_utils import get_tokenizer, get_tokenizer3
 import torch
-from torchvision.models import vit_h_14, vit_b_16, resnet50
-from transformers import AutoTokenizer, DebertaV2Model
+from transformers import AutoTokenizer
 
-logger = get_logger(__name__)
+from useless_layers.stitching_eval import stitched_performance_eval
 
+from datasets import load_from_disk
+import pickle
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -141,27 +135,27 @@ def main():
     world_size = 1
 
 
-    if args.model_name in ["llama-2-7b", "llama-2-13b]:
+    if args.model_name in ["llama-2-7b", "llama-2-13b"]:
         model = get_model(
             config_name=args.config_name,
             model_name_or_path=args.checkpoint_dir,
             precision=torch.bfloat16,
             low_cpu_mem_usage=args.low_cpu_mem_usage,
             use_flash_attn=args.use_flash_attn,
-            logger=logger,
+            logger=None,
         )
 
         tokenizer = get_tokenizer(
             tokenizer_path=args.tokenizer_name, model_path=args.checkpoint_dir
         )
-    elif args.model_name == "llama-3-7b":
+    elif args.model_name == "llama-3-8b":
         model = get_model(
             config_name=args.config_name,
             model_name_or_path=args.checkpoint_dir,
             precision=torch.bfloat16,
             low_cpu_mem_usage=args.low_cpu_mem_usage,
             use_flash_attn=args.use_flash_attn,
-            logger=logger,
+            logger=None,
         )
 
         tokenizer = get_tokenizer3(
@@ -183,8 +177,7 @@ def main():
         filepath=args.text_dataset,
         tokenizer=tokenizer,
         max_seq_length=args.max_seq_len,
-        num_processes=args.preprocessing_num_workers,
-        n_caption_per_image=args.n_caption_per_image,
+        num_processes=args.preprocessing_num_workers
     )
 
 

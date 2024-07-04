@@ -1,5 +1,5 @@
 import torch
-from comparison_utils import entropy_from_logits, correct_guess
+from utils.comparison_utils import entropy_from_logits, correct_guess
 from stitched_classes import bridgedLlamaFromModelToModel
 import sys
 
@@ -11,7 +11,7 @@ def bridged_performance_eval(model_dict,
                              indexes_low, 
                              indexes_high, 
                              dataloader,
-                             printout=False )
+                             printout=False ):
     # ONLY PERFORMANCE from single layer to another layer
     Ndata = len(dataloader)
     text_results = []
@@ -60,7 +60,7 @@ def stitched_performance_eval(model,
                               indexes_high, 
                               dataloader,
                               representation_folder='./representations',
-                              printout=False )
+                              printout=False ):
     Ndata = len(dataloader)
     if model_name in ["llama-2-7b", "llama-3-8b"]:
         index_max = 32
