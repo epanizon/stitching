@@ -135,7 +135,7 @@ def main():
     world_size = 1
 
 
-    if args.model_name in ["llama-2-7b", "llama-2-13b"]:
+    if args.model_name in ["llama2-7b", "llama2-13b"]:
         model = get_model(
             config_name=args.config_name,
             model_name_or_path=args.checkpoint_dir,
@@ -148,7 +148,7 @@ def main():
         tokenizer = get_tokenizer(
             tokenizer_path=args.tokenizer_name, model_path=args.checkpoint_dir
         )
-    elif args.model_name == "llama-3-8b":
+    elif args.model_name == "llama3-8b":
         model = get_model(
             config_name=args.config_name,
             model_name_or_path=args.checkpoint_dir,
@@ -199,15 +199,19 @@ def main():
     nsamples = len(dataloader.dataset)
     print("num_total_samples", nsamples)
 
-    results = stitched_performance_eval(model, 
-                              model_name,
-                              nums_anchors, 
-                              indexes_low, 
-                              indexes_high, 
-                              dataloader,
+    indexes_high = range(4,33)
+    index_min = 3
+    nums_anchors = [15000]
+
+    results = stitched_performance_eval(model=model, 
+                              model_name=args.model_name,
+                              nums_anchors=nums_anchors, 
+                              index_min=index_min, 
+                              indexes_high=indexes_high, 
+                              dataloader=dataloader,
+                              tokenizer=tokenizer,
                               representation_folder=args.reps_dir,
                               printout=True )
-                       
 
 if __name__ == "__main__":
     main()

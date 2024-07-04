@@ -1,6 +1,7 @@
 import torch
-from utils.comparison_utils import entropy_from_logits, correct_guess
-from stitched_classes import bridgedLlamaFromModelToModel
+from utils.comparison_utils import entropy_from_logits, correct_guess, best_guesses, best_overlap, correct_guess, overlap
+from useless_layers.stitched_classes import bridgedLlamaFromModelToModel
+from useless_layers.stitched_classes import stitchedLlamaFromModel
 import sys
 
 def bridged_performance_eval(model_dict, 
@@ -8,7 +9,7 @@ def bridged_performance_eval(model_dict,
                              model_name,
                              model_name2,
                              sizes_anchors, 
-                             indexes_low, 
+                             index_min, 
                              indexes_high, 
                              dataloader,
                              printout=False ):
@@ -56,27 +57,28 @@ def bridged_performance_eval(model_dict,
 def stitched_performance_eval(model, 
                               model_name,
                               nums_anchors, 
-                              indexes_low, 
+                              index_min, 
                               indexes_high, 
                               dataloader,
+                              tokenizer,
                               representation_folder='./representations',
                               printout=False ):
     Ndata = len(dataloader)
-    if model_name in ["llama-2-7b", "llama-3-8b"]:
+    if model_name in ["llama2-7b", "llama3-8b"]:
         index_max = 32
-    elif model_name in ["llama-2-13b"]:
+    elif model_name in ["llama2-13b"]:
         index_max = 40
-    else
+    else:
         sys.stdout.flush()
         raise NameError(
             f"{model_name} not supported. Possible values are: 'llama-2-7b', 'llama-2-13b, 'llama-3-8b'"
         )
-    
+    device='cuda'
     text_results = []
     for index_high in indexes_high:
-        representation_layercut_high_float = torch.load(representation_folder + f'./representations/representation_layercut_{index_high}_{model_name}.pt').float()
-        for index_low in indexes_low:
-            representation_layercut_low_float = torch.load(representation_folder + f'./representations/representation_layercut_{index_low}_{model_name}.pt').float()
+        representation_layercut_high_float = torch.load(representation_folder + f'/representation_layercut_{index_high}_{model_name}.pt').float()
+        for index_low in range(index_min, index_high+1):
+            representation_layercut_low_float = torch.load(representation_folder + f'/representation_layercut_{index_low}_{model_name}.pt').float()
             num_tot, _ = representation_layercut_low_float.shape
             for num_anchors in nums_anchors:
                 for iter_over_size in range(1):
